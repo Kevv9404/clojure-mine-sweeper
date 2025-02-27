@@ -1,6 +1,6 @@
 (ns com.mine-sweeper.terminal
   (:import (java.nio.charset StandardCharsets)
-           (jdk.internal.org.jline.terminal Terminal)
+           (jdk.internal.org.line.terminal Terminal)
            (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)))
 
 
@@ -25,5 +25,5 @@
     (when keyStroke
       (.getCharacter keyStroke))))
 
-
-(def t (terminal))
+comment
+((def t (terminal)))
