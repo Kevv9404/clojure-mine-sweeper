@@ -1,4 +1,4 @@
 {:paths ["src" "test" "target/classes" "target/production/clojure-training"]
  :deps  {org.clojure/clojure {:mvn/version "1.11.3"}
          com.fulcrologic/fulcro {:mvn/version "3.6.3"}
-         com.googlecode.lanterna/lanterna {:mvn/version "3.1.1"}}}
+         com.googlecode.lanterna/lanterna {:mvn/version "3.1.2"}}}
