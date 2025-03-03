@@ -1,5 +1,6 @@
 (ns com.mine-sweeper.model.field
-  (:require [com.mine-sweeper.model.utils :as utils]))
+  (:require [com.mine-sweeper.model.utils :as utils]
+            [com.mine-sweeper.model.cell :as cell]))
 
 (defn empty-cell [] {:cell/hidden?  true
                      :cell/flagged? false})
@@ -28,8 +29,6 @@
       (get-in [cx cy])
       (assoc :x cx :y cy))))
 
-(defn mined? [{:cell/keys [content]}] (= content :mine))
-(def not-mined? (complement mined?))
 
 ;; Library???
 (defn random-grid-locations
@@ -43,6 +42,7 @@
         (recur (conj locations [x y]))))))
 
 (defn set-field-content [mine-field x y value] (assoc-in mine-field [:mine-field/grid x y :cell/content] value))
+
 (defn get-field-content [mine-field x y] (get-in mine-field [:mine-field/grid x y :cell/content]))
 
 ;; Generative testing???
@@ -51,6 +51,7 @@
 ;;      * The mines seem to be in random locations (might be challenging to write)
 ;;   * run some number of iterations, where you use randomly generated data, and assert that the PROPERTIES are true
 ;;   * When using "random" data, you often take control of the "seed"
+
 (defn populate-mines
   "Returns an updated mine field with n mines in random locations. NOTE: The grid must be empty if you want to ensure n new mines."
   [{:mine-field/keys [width height] :as mf} n]
@@ -58,7 +59,7 @@
     (reduce (fn [m [x y]] (set-field-content m x y :mine)) mf locations)))
 
 (defn mine-count [mine-field x y]
-  (count (filter mined? (adjacent-cells mine-field x y))))
+  (count (filter cell/mined? (adjacent-cells mine-field x y))))
 
 (defn grid-locations
   "Returns a sequence of [x y] pairs for every location in the grid of the mine field."
@@ -81,20 +82,14 @@
 
 (defn expand [{:keys [grid] :as mine-field} x y]
   (let [cell                     (get-in mine-field [x y])
-        adjacent-not-mined-cells (into #{} (filter not-mined? (adjacent-cells mine-field x y)))]
+        adjacent-not-mined-cells (into #{} (filter cell/not-mined? (adjacent-cells mine-field x y)))]
     (cond
       (empty? (:cell/content cell))
       (mapv (fn [row] (mapv (fn [c]
                               (if (or (= c cell) (contains? c adjacent-not-mined-cells))
                                 (assoc c :cell/hidden? false))) row)) grid)
-      (mined? cell)
+      (cell/mined? cell)
       (mapv (fn [row] (mapv (fn [cell] (assoc cell :cell/hidden? false)) row)) grid))))
-
-(defn set-adjacent-content [c n] (assoc c :cell/content n))
-
-(defn set-mine [c] (assoc c :cell/content :mine))
-
-(defn set-flag [c] (assoc c :cell/flagged true))
 
 
 (comment
@@ -111,5 +106,6 @@
     (repeatedly 10 #(.nextInt r)))
   (get-cell-at-coordinate (mine-field 3 3) 2 1)
   (adjacent-cells (mine-field 6 6) 0 0)
-  (build-grid 2 -1)
+  (build-grid 3 2)
+  (empty-cell)
   )
