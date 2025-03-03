@@ -1,5 +1,5 @@
 (ns com.mine-sweeper.model.utils-test
-  (:require [com.mine-sweeper.model.utils :as utils]
+  (:require [com.mine-sweeper.model.grid :as utils]
             [fulcro-spec.core :refer [=> assertions component behavior specification when-mocking]]))
 
 (specification "vec-of"

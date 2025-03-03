@@ -2,3 +2,4 @@
 .idea
 .cpcache
 .nrepl-port
+/clojure-mine-sweeper.iml
