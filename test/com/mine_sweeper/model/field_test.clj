@@ -5,6 +5,7 @@
 
 
 (specification "build-grid" :focus
+
   (assertions
     "When number of rows is equal to height"
     (count (field/build-grid 2 3)) => 3
