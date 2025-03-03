@@ -28,8 +28,8 @@
   (let [coordinates [[x (dec y)] [x (inc y)] [(inc x) y] [(dec x) y]
                      [(dec x) (dec y)] [(inc x) (inc y)]
                      [(inc x) (dec y)] [(dec x) (inc y)]]]
-    (mapv (fn [[x y]]
-            (get-cell-at-coordinate mine-field x y)) coordinates)))
+    (remove nil? (mapv (fn [[x y]]
+             (get-cell-at-coordinate mine-field x y)) coordinates))))
 
 (defn mined? [{:cell/keys [content]}] (= content :mine))
 (def not-mined? (complement mined?))
@@ -65,6 +65,6 @@
 (comment
   (mine-field 2 2)
   (get-cell-at-coordinate (mine-field 3 3) 2 1)
-  (adjacent-cells (mine-field 6 6) 2 2)
+  (adjacent-cells (mine-field 6 6) 0 0)
   (build-grid 2 -1)
   )
