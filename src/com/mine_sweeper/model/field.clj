@@ -1,31 +1,63 @@
-(ns com.mine-sweeper.model.field)
+(ns com.mine-sweeper.model.field
+  (:require [com.mine-sweeper.model.utils :as utils]))
 
-(def cells-status
-  {:mine   "mine"
-   :number "number"
-   :flag   "flag"
-   :empty  "empty"})
-;1, Should be a function
-;2. could take width/height
-;3. We need a function to create a new cell.
-;4. Functional programming general.
-;5. things need goo names. (field? is very general)
-;6. Minefield =  vector of list of vectors.
+(defn empty-cell [] {:cell/hidden?  true
+                     :cell/flagged? false})
 
-(defn mine-field [width heigth])
+(defn build-grid
+  "Returns a list of maps as cells with coordinates given a width and height"
+  [width height]
+  (let [grid (utils/vectors-of empty-cell width height)]
+    (into [] (map-indexed
+               (fn [y row]
+                 (into []
+                       (map-indexed
+                         (fn [x cell]
+                           (assoc cell :cell/x x :cell/y y))
+                         row)))
+               grid))))
 
-(defn vec-of [number-of-elements element-factory]
-  (mapv element-factory (range number-of-elements)))
+(defn mine-field [w h] {:mine-field/width  w
+                        :mine-field/height h
+                        :mine-field/grid   (build-grid w h)})
 
-(defn vectors-of [element-factory & dims]
-  (mapv (vec-of (apply vectors-of (rest dims)) dims) dims))
+(defn get-cell-at-coordinate [{:mine-field/keys [grid]} x y]
+  (first (filter #(and (= (:cell/x %) x) (= (:cell/y %) y)) (mapcat identity grid))))
 
-(defn empty-cell [_] {:hidden? true})
+(defn adjacent-cells [mine-field x y]
+  (let [coordinates [[x (dec y)] [x (inc y)] [(inc x) y] [(dec x) y]
+                     [(dec x) (dec y)] [(inc x) (inc y)]
+                     [(inc x) (dec y)] [(dec x) (inc y)]]]
+    (mapv (fn [[x y]]
+            (get-cell-at-coordinate mine-field x y)) coordinates)))
 
-(defn mine-field [w h] {:width  w
-                        :height h
-                        :cells  (vectors-of empty-cell w h)})
+(defn mined? [{:cell/keys [content]}] (= content :mine))
+(def not-mined? (complement mined?))
 
-(comment
-  (vec-of 5 empty-cell)
-  (vectors-of empty-cell 5 5))
+(defn mine-count [mine-field x y]
+  (count (filter mined? (adjacent-cells mine-field x y))))
+
+(defn expand [{:keys [grid] :as mine-field} x y]
+  (let [cell (get-cell-at-coordinate mine-field x y)
+        adjacent-not-mined-cells (into #{} (filter not-mined? (adjacent-cells mine-field x y)))]
+    (cond
+      (empty? (:cell/content cell))
+      (mapv (fn [row] (do (assoc cell :cell/hidden? false)
+                        (mapv (fn [cell]
+                               (if (contains? cell adjacent-not-mined-cells) (assoc cell :cell/hidden? false))) row))) grid)
+      (mined? cell)
+      (mapv (fn [row] (mapv (fn [cell] (assoc cell :cell/hidden? false)) row)) grid))))
+
+(defn set-adjacent-content [c n] (assoc c :cell/content n))
+
+(defn set-mine [c] (assoc c :cell/content :mine))
+
+(defn set-flag [c] (assoc c :cell/flagged true))
+
+(defn random-mind-locations [mine-field n]
+  (loop [mines 0
+         mine-field mine-field]
+    (if (< mines n)
+      (recur (inc mines)
+             (assoc (get-cell-at-coordinate mine-field (rand-int (:mine-field/width mine-field)) (rand-int (:mine-field/height mine-field)))
+               :cell/content :mine)))))

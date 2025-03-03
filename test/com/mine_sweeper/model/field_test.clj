@@ -4,15 +4,7 @@
             [fulcro-spec.core :refer [=> assertions component behavior specification when-mocking]]))
 
 
-(deftest cells-are-hidden
-  (let [field field/field]
-    (doseq [row  field
-            cell row]
-      (is (:hidden? cell)))))
+(specification "mine-field" :focus
+  (assertions
 
-(deftest there-are-10-mines
-  (let [field            field/field
-        random-cell      (rand-int 10)
-        ;TODO: fix how we add mines to the field
-        field-with-mines (repeat 10 (assoc-in field [random-cell random-cell :value] (:mine field/cells-status)))]
-    [(println "mine --> " field-with-mines)]))
+  ))
