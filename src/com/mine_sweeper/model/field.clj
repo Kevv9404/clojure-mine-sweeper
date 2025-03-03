@@ -7,7 +7,7 @@
 (defn build-grid
   "Returns a list of maps as cells with coordinates given a width and height"
   [width height]
-  (let [grid (utils/vectors-of empty-cell width height)]
+  (let [grid (utils/vectors-of empty-cell height width)]
     (into [] (map-indexed
                (fn [y row]
                  (into []
@@ -42,9 +42,9 @@
         adjacent-not-mined-cells (into #{} (filter not-mined? (adjacent-cells mine-field x y)))]
     (cond
       (empty? (:cell/content cell))
-      (mapv (fn [row] (do (assoc cell :cell/hidden? false)
-                        (mapv (fn [cell]
-                               (if (contains? cell adjacent-not-mined-cells) (assoc cell :cell/hidden? false))) row))) grid)
+      (mapv (fn [row] (mapv (fn [c]
+                              (if (or (= c cell) (contains? c adjacent-not-mined-cells))
+                                (assoc c :cell/hidden? false))) row)) grid)
       (mined? cell)
       (mapv (fn [row] (mapv (fn [cell] (assoc cell :cell/hidden? false)) row)) grid))))
 
@@ -61,3 +61,10 @@
       (recur (inc mines)
              (assoc (get-cell-at-coordinate mine-field (rand-int (:mine-field/width mine-field)) (rand-int (:mine-field/height mine-field)))
                :cell/content :mine)))))
+
+(comment
+  (mine-field 2 2)
+  (get-cell-at-coordinate (mine-field 3 3) 2 1)
+  (adjacent-cells (mine-field 6 6) 2 2)
+  (build-grid 2 -1)
+  )
