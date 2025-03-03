@@ -110,6 +110,6 @@
   (let [r (java.util.Random. 1453361670)]
     (repeatedly 10 #(.nextInt r)))
   (get-cell-at-coordinate (mine-field 3 3) 2 1)
-  (adjacent-cells (mine-field 6 6) 2 2)
+  (adjacent-cells (mine-field 6 6) 0 0)
   (build-grid 2 -1)
   )
