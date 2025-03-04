@@ -3,6 +3,7 @@
             [com.mine-sweeper.terminal :as terminal])
   (:import (jdk.internal.org.jline.terminal Terminal)))
 
+(def t (terminal/terminal))
 
 (defn setup [width height n]
   (-> (field/mine-field width height)
@@ -10,8 +11,7 @@
     (field/initialize-mine-counts)))
 
 (def app-state (atom {:cursor-position [0 0]
-                      :mine-field      (setup 10 10 3)}))
-
+                      :mine-field      (setup 2 2 3)}))
 
 (defn move-cursor* [initial-state direction]
   (let [{:mine-field/keys [width height]} (:mine-field initial-state)]
@@ -25,6 +25,26 @@
                               [x y])]
           [(max 0 (min (dec width) new-x))
            (max 0 (min (dec height) new-y))])))))
+
+;(defn get-command [^Terminal t]
+;  (let [key (terminal/get-next-key-press t)]
+;    (cond
+;      (= key \h) (fn [state] (move-cursor* state :left))
+;      (= key \j) (fn [state] (move-cursor* state :down))
+;      (= key \k) (fn [state] (move-cursor* state :up))
+;      (= key \l) (fn [state] (move-cursor* state :right))
+;      :else (fn [state] state))))
+
+(defn game-over? [state]
+  (let [{:mine-field/keys [grid]} (:mine-field state)
+        [x y] (:cursor-position state)
+        cell (get-in grid [x y])]
+    (and #_(not (:cell/hidden? cell))
+      (= (:cell/content cell) :mine))))
+
+(game-over? @app-state)
+
+
 
 (defn draw-grid [^Terminal t mine-field]
   (let [grid (-> mine-field :mine-field :mine-field/grid)]
@@ -49,28 +69,28 @@
         (Thread/sleep 100))))
 
 
-(def t (terminal/terminal))
 
-(defn user-movement []
-  (let [cursor-position (:cursor-position @app-state)]
-    (loop []
-      (let [key (terminal/get-next-key-press t)]
-        (when key
-          (swap! app-state update :cursor-position
-            (fn [[x y]]
-              (condp = key
-                \h [(dec x) y]
-                \j [x (inc y)]
-                \k [x (dec y)]
-                \l [(inc x) y]
-                :else [x y]))))
-        (let [[new-x new-y] cursor-position]
-          (terminal/move-cursor t new-x new-y)))
-      (recur))))
+;(defn user-movement []
+;  (let [cursor-position (:cursor-position @app-state)]
+;    (loop []
+;      (let [key (terminal/get-next-key-press t)]
+;        (when key
+;          (swap! app-state update :cursor-position
+;            (fn [[x y]]
+;              (condp = key
+;                \h [(dec x) y]
+;                \j [x (inc y)]
+;                \k [x (dec y)]
+;                \l [(inc x) y]
+;                :else [x y]))))
+;        (let [[new-x new-y] cursor-position]
+;          (terminal/move-cursor t new-x new-y)))
+;      (recur))))
 
 (comment
   (draw-grid t @app-state)
-  (user-movement))
+  (move-cursor* @app-state :up)
+  )
 
 
 
