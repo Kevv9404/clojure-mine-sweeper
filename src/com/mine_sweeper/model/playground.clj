@@ -14,21 +14,39 @@
 (defn draw-grid [^Terminal t mine-field]
   (let [grid (:mine-field/grid mine-field)]
     (mapv (fn [row]
-            (mapv (fn [cell]
-                    (if (= (:cell/hidden? cell) true)
-                      (terminal/put-character t (:cell/x cell) (:cell/y cell) \~)
+            (mapv (fn [{:cell/keys [hidden? content flagged? x y]}]
+                    (if (= hidden? true)
+                      (terminal/put-character t x y \~)
                       (cond
-                        (= (:cell/content cell) :mine) (terminal/put-character t (:cell/x cell) (:cell/y cell) \*)
-                        (number? (:cell/content cell)) (terminal/put-character t (:cell/x cell) (:cell/y cell) (char (+ 48 (:cell/content cell))))
-                        (= (:cell/flagged? cell) true) (terminal/put-character t (:cell/x cell) (:cell/y cell) \?))))
+                        (= content :mine) (terminal/put-character t x y \*)
+                        (number? content) (terminal/put-character t x y (char (+ 48 content)))
+                        (= flagged? true) (terminal/put-character t x y \?))))
               row)) grid)))
 
 
 (def t (terminal/terminal))
-(draw-grid t (setup 10 10 3))
+
+(defn movement []
+  (let [cursor-position (atom [0 0])]
+    (loop []
+      (let [key (terminal/get-next-key-press t)]
+        (when key
+          (swap! cursor-position
+            (fn [[x y]]
+              (condp = key
+                \h [(dec x) y]
+                \j [x (inc y)]
+                \k [x (dec y)]
+                \l [(inc x) y]
+                :else [x y]))))
+        (let [[new-x new-y] @cursor-position]
+          (terminal/move-cursor t new-x new-y)
+          ))
+      (recur))))
 
 (comment
-
+  (draw-grid t (setup 10 10 3))
+  (movement)
   )
 
 
