@@ -37,14 +37,10 @@
 
 (defn game-over? [state]
   (let [{:mine-field/keys [grid]} (:mine-field state)
-        [x y] (:cursor-position state)
-        cell (get-in grid [x y])]
+        cursor-position (:cursor-position state)
+        cell            (get-in grid cursor-position)]
     (and #_(not (:cell/hidden? cell))
       (= (:cell/content cell) :mine))))
-
-(game-over? @app-state)
-
-
 
 (defn draw-grid [^Terminal t mine-field]
   (let [grid (-> mine-field :mine-field :mine-field/grid)]
@@ -89,8 +85,13 @@
 
 (comment
   (draw-grid t @app-state)
-  (move-cursor* @app-state :up)
-  )
+
+  (swap! app-state move-cursor* :up)
+  (swap! app-state move-cursor* :down)
+  (swap! app-state move-cursor* :left)
+  (swap! app-state move-cursor* :right)
+
+  (game-over? @app-state))
 
 
 
