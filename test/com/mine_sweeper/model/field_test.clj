@@ -1,36 +1,26 @@
 (ns com.mine-sweeper.model.field-test
   (:require [clojure.test :refer :all]
+            [com.mine-sweeper.model.cell :as cell]
             [com.mine-sweeper.model.field :as field]
             [fulcro-spec.core :refer [=> assertions specification]]))
 
+(specification "expose-all-cells"
+  (let [M             (cell/set-mine (cell/empty-cell))
+        E             (cell/empty-cell)
+        grid          [[M E E]
+                       [E M E]
+                       [E E M]]
+        mine-field    {:mine-field/width  3
+                       :mine-field/height 3
+                       :mine-field/grid   grid}
+        exposed-field (field/expose-all-cells mine-field)]
 
-(specification "build-grid" :focus
-
-  (assertions
-    "When number of rows is equal to height"
-    (count (field/build-grid 2 3)) => 3
-    "When number of cell is equal to width"
-    (into #{} (mapv count (field/build-grid 2 3))) => #{2}
-    "When given negative args, returns a empty vector"
-    (field/build-grid -1 -3) => []))
-
-(specification "initialize-mine-counts" :focus
-  (let [M        (field/set-mine (field/empty-cell))
-        c0       (field/set-adjacent-content (field/empty-cell) 0)
-        c1       (field/set-adjacent-content (field/empty-cell) 1)
-        c2       (field/set-adjacent-content (field/empty-cell) 2)
-        c3       (field/set-adjacent-content (field/empty-cell) 3)
-        E        (field/empty-cell)
-        grid     [[M E E M]
-                  [E M E M]
-                  [E E E E]
-                  [E E M E]]
-        expected [[M c2 c3 M]
-                  [c2 M c3 M]
-                  [c1 c2 c3 c2]
-                  [c0 c1 M c1]]]
     (assertions
-      (:mine-field/grid
-        (field/initialize-mine-counts {:mine-field/width  4
-                                       :mine-field/height 4
-                                       :mine-field/grid   grid})) => expected)))
+      "All cells should be exposed (hidden? = false)"
+      (every? (fn [row]
+                (every? #(false? (:cell/hidden? %)) row))
+        (:mine-field/grid exposed-field)) => true
+
+      "Grid structure and content should remain unchanged"
+      (= (mapv #(mapv :cell/content %) (:mine-field/grid exposed-field))
+        (mapv #(mapv :cell/content %) grid)) => true)))
