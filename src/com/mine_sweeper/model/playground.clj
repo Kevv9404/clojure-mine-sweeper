@@ -1,5 +1,6 @@
 (ns com.mine-sweeper.model.playground
-  (:require [com.mine-sweeper.model.field :as field]
+  (:require [com.mine-sweeper.model.cell :as cell]
+            [com.mine-sweeper.model.field :as field]
             [com.mine-sweeper.terminal :as terminal])
   (:import (jdk.internal.org.jline.terminal Terminal)))
 
@@ -36,11 +37,7 @@
 ;      :else (fn [state] state))))
 
 (defn game-over? [state]
-  (let [{:mine-field/keys [grid]} (:mine-field state)
-        cursor-position (:cursor-position state)
-        cell            (get-in grid cursor-position)]
-    (and #_(not (:cell/hidden? cell))
-      (= (:cell/content cell) :mine))))
+  (some cell/exposed-mine? (field/all-cells (:mine-field state))))
 
 (defn draw-grid [^Terminal t mine-field]
   (let [grid (-> mine-field :mine-field :mine-field/grid)]
