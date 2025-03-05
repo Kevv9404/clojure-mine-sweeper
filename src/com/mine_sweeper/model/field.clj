@@ -29,6 +29,13 @@
       (get-in [cx cy])
       (assoc :x cx :y cy))))
 
+(defn all-cells [{:mine-field/keys [width height grid] :as mine-field}]
+  (for [cx (range width)
+        cy (range height)]
+    (-> grid
+      (get-in [cx cy])
+      (assoc :x cx :y cy))))
+
 
 ;; Library???
 (defn random-grid-locations
