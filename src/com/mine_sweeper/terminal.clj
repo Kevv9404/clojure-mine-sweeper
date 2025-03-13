@@ -9,6 +9,9 @@
   (.enterPrivateMode t)
   (.clearScreen t))
 
+(defn clear! [^Terminal t]
+  (.clearScreen t))
+
 (defn move-cursor [^Terminal t x y]
   (.setCursorPosition t x y))
 

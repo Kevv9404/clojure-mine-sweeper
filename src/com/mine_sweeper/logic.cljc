@@ -1,6 +1,7 @@
 (ns com.mine-sweeper.logic
   (:require [com.mine-sweeper.model.cell :as cell]
-            [com.mine-sweeper.model.field :as field]))
+            [com.mine-sweeper.model.field :as field]
+            [taoensso.timbre :as log]))
 
 (defn setup [width height n]
   (merge {:cursor-position [0 0]
@@ -73,26 +74,29 @@
   (let [[cx cy] cursor-position]
     (update-in state [:mine-field/grid cx cy :cell/flagged?] not)))
 
-(defn get-command [state key]
-  (let [[x y] (:cursor-position state)]
-    (when key
-      (fn [state]
-        (let [cmd (user-input->command key)]
-          (case cmd
-            (:up :down :left :right) (move-cursor* state cmd)
-            :exit (System/exit 0)
-            :expand (expand state x y)
-            :flag (flagged state)
-            :restart state
-            state))))))
-
 (defn game-over? [state]
   (or (some cell/exposed-mine? (field/all-cells state))
     (= (:mine-count state) (count (filter #(and (cell/mined? %) (cell/flagged? %)) (field/all-cells state))))))
 
+(defn get-command [{:keys            [mine-count]
+                    :mine-field/keys [width height] :as state} key]
+  (let [[x y] (:cursor-position state)]
+    (when key
+      (fn [state]
+        (let [cmd (user-input->command key)]
+          (if (game-over? state)
+            (case cmd
+              :restart (setup width height mine-count)
+              state)
+            (case cmd
+              (:up :down :left :right) (move-cursor* state cmd)
+              :expand (expand state x y)
+              :flag (flagged state)
+              state)))))))
+
 (defn game-step
   "Update the game for a single step of user input"
   [current-state user-input]
-  (if-let [cmd (get-command current-state user-input)]
-    (cmd current-state)
+  (if-let [cmd (log/spy :info (get-command current-state user-input))]
+    (log/spy :info "Next state" (cmd current-state))
     current-state))
