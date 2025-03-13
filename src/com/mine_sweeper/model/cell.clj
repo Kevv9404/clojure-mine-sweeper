@@ -1,11 +1,15 @@
 (ns com.mine-sweeper.model.cell)
 
+(defn empty-cell [] {:cell/hidden?  true
+                     :cell/content  0
+                     :cell/flagged? false})
+
+(defn empty-cell? [{:cell/keys [content]}] (= 0 content))
 
 (defn mined? [{:cell/keys [content]}] (= content :mine))
 
 (defn number-cell? [{:cell/keys [content]}] (pos-int? content))
 
-(defn empty-cell? [{:cell/keys [content]}] (= 0 content))
 (def not-mined? (complement mined?))
 
 (defn flagged? [{:cell/keys [flagged?]}] flagged?)
@@ -20,10 +24,10 @@
 
 (defn exposed-mine? [cell] (and (exposed? cell) (mined? cell)))
 
-(defn cell-character ^Character [cell]
+(defn cell-character [cell]
   (cond
-    (and (exposed? cell) (mined? cell)) \*
-    (flagged? cell) \?
-    (not (exposed? cell)) \~
-    (empty-cell? cell) \_
-    (number-cell? cell) (char (+ 48 (:cell/content cell)))))
+    (and (exposed? cell) (mined? cell)) "*"
+    (flagged? cell) "?"
+    (not (exposed? cell)) "~"
+    (empty-cell? cell) "_"
+    (number-cell? cell) (str cell)))

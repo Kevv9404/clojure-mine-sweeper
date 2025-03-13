@@ -1,9 +1,6 @@
 (ns com.mine-sweeper.model.field
   (:require [com.mine-sweeper.model.utils :as utils]
-            [com.mine-sweeper.model.cell :as cell]))
-
-(defn empty-cell [] {:cell/hidden?  true
-                     :cell/flagged? false})
+            [com.mine-sweeper.model.cell :as cell :refer [empty-cell]]))
 
 (defn build-grid
   "Returns a list of maps as cells with coordinates given a width and height"
