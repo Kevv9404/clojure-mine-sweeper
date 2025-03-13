@@ -1,29 +1,40 @@
 (ns com.mine-sweeper.terminal
-  (:import (java.nio.charset StandardCharsets)
-           (jdk.internal.org.line.terminal Terminal)
-           (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)))
+  (:import (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)
+           (java.nio.charset StandardCharsets)))
 
 
-(defn terminal []
-  (.createTerminal (new DefaultTerminalFactory System/out, System/in, StandardCharsets/UTF_8)))
-
-(defn init-terminal [^Terminal t]
+(defn- init-terminal [^Terminal t]
   (.enterPrivateMode t)
   (.clearScreen t))
 
-(defn move-cursor [^Terminal t x y]
-  (.setCursorPosition t x y)
-  (.flush t))
+(defn terminal []
+  (let [t (.createTerminal (new DefaultTerminalFactory System/out, System/in, StandardCharsets/UTF_8))]
+    (init-terminal t)
+    t))
 
-(defn put-character [^Terminal t x y ^Character c]
-  (.setCursorPosition t x y)
-  (.putCharacter t c)
-  (.flush t))
+(defn move-cursor!
+  "Move the cursor. Requires a `flush!`."
+  [^Terminal t x y] (.setCursorPosition t x y))
 
-(defn get-next-key-press [^Terminal t]
+(defn put-character!
+  "Put the first character of object `c` at x,y. Requires a flush."
+  [^Terminal t x y c]
+  (.setCursorPosition t x y)
+  (.putCharacter t (first (str c))))
+
+(defn poll-for-input
+  "Returns a string version of the key pressed, or nil if no key is available."
+  ^String [^Terminal t]
   (let [keyStroke (.pollInput t)]
     (when keyStroke
-      (.getCharacter keyStroke))))
+      (str (.getCharacter keyStroke)))))
 
-comment
-((def t (terminal)))
+(defn next-input
+  "BLOCKS until the user presses a key, then returns a string version of the key pressed (or possibly nil)."
+  ^String [^Terminal t]
+  (let [keyStroke (.readInput t)]
+    (when keyStroke
+      (str (.getCharacter keyStroke)))))
+
+(defn flush! [^Terminal t]
+  (.flush t))
