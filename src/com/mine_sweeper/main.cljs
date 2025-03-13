@@ -33,23 +33,24 @@
               (dom/div {:id        (str "cell-" x "-" y)
                         :className "w-10 h-10 flex items-center justify-center border border-gray-300 font-bold border-grey text-white"
                         :style     {:backgroundColor (cond
-                                                        is-cursor? "#3cdfff"
-                                                        (not hidden?) "#636363"
-                                                        hidden? "#E8E8E8")}}
+                                                       is-cursor? "#3cdfff"
+                                                       (not hidden?) "#636363"
+                                                       hidden? "#E8E8E8")}}
                 (cond
                   flagged? (str "🇨🇴")
                   hidden? ""
                   (= content :mine) (str "💣")
                   :else (str content)))))))
-      (dom/div {:id "Game over" :className "flex"}
+      (dom/div {:id "Game over" :className "flex flex-col items-center justify-center w-full mt-4 text-red"}
         (when (logic/game-over? mine-field)
-          (dom/div
-            (dom/h1 "Game over!!")
-            (dom/button {:onClick #(swap! game-state logic/game-step \y)} "Restart")))))))
-
+          (dom/div {:className "text-center"}
+            (dom/h1 {:className "text-2xl font-bold"} "Game over!!")
+            (dom/button {:className "mt-2 px-4 py-2 bg-blue text-white rounded"
+                         :onClick   #(swap! game-state logic/game-step \y)}
+              "Restart")))))))
 
 (defn init []
-  (println "Initializing app!!!")
+  (println "Initializing app!!")
   (let [the-real-div (.getElementById js/document "app")]
     (reset! root (createRoot the-real-div))))
 
