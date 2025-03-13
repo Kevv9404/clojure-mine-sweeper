@@ -16,27 +16,43 @@
                       (add-watch a :render render!)
                       a))
 
-(defn render-mine-field [{:keys [cursor-position]
+(defn render-mine-field [{:keys            [cursor-position]
                           :mine-field/keys [width height grid] :as mine-field}]
   (dom/div {:tabIndex  0
+            :className "flex justify-center items-center h-screen "
             :onKeyDown (fn [evt]
-                         (swap! game-state identity)
-                         (println (.-key evt)))}
-    (dom/div
-      (mapv
-        (fn [row]
-          (dom/div {:style {:display :inline}}
-            (mapv
-              (fn [cell]
-                (dom/div {:onClick (fn []
-                                     (println "Clicked on " cell))
-                          :style   {:display "inline"
-                                    :width   "40px"}} (str (:cell/content cell))))
+                         (let [key  (.-key evt)
+                               move (logic/user-input->command key)]
+                           (when move
+                             (swap! game-state logic/game-step key))))}
+    (dom/div {:className "grid gap-1 p-4 bg-white shadow-lg rounded-lg"}
+      (map-indexed
+        (fn [y row]
+          (dom/div {:id (str "row-" y) :className "flex"}
+            (map-indexed
+              (fn [x cell]
+                (let [content    (:cell/content cell)
+                      hidden?    (:cell/hidden? cell)
+                      is-cursor? (= [x y] cursor-position)]
+                  (dom/div {:id (str "cell-" x "-" y)
+                            :onClick   (fn []
+                                         (println "Clicked on " x y cell))
+                            :className (str "w-10 h-10 flex items-center justify-center border border-gray-300"
+                                         (if is-cursor?
+                                           " bg-blue"
+                                           " bg-gray"
+                                           ))}
+                    (cond
+                      hidden? ""
+                      (= content :mine) (str "💣")
+                      :else (str content))
+                    )))
               row)))
         grid))))
 
+
 (defn init []
-  (println "Initializing app")
+  (println "Initializing app!!!")
   (let [the-real-div (.getElementById js/document "app")]
     (reset! root (createRoot the-real-div))))
 
