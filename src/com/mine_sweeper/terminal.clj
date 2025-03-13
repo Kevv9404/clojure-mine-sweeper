@@ -14,15 +14,21 @@
 
 (defn put-character [^Terminal t x y ^Character c]
   (.setCursorPosition t x y)
-  (.putCharacter t c))
+  (.putCharacter t c)
+  )
 
 (defn get-next-key-press [^Terminal t]
-  (let [keyStroke (.pollInput t)]
+  (let [keyStroke (.readInput t)]
     (when keyStroke
       (.getCharacter keyStroke))))
 
-(defn flush! [^Terminal t]
+(defn put-string [^Terminal t h w ^String s]
+  (.setCursorPosition t (/ w 2) (/ h 2))
+  (.putString t s)
   (.flush t))
 
-(comment
-  (def t (terminal)))
+(defn exit-terminal [^Terminal t]
+  (.close t))
+
+(defn flush! [^Terminal t]
+  (.flush t))

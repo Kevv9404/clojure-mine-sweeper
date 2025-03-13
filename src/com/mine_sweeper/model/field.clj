@@ -12,10 +12,10 @@
     (into [] (map-indexed
                (fn [y row]
                  (into []
-                   (map-indexed
-                     (fn [x cell]
-                       (assoc cell :cell/x x :cell/y y))
-                     row)))
+                       (map-indexed
+                         (fn [x cell]
+                           (assoc cell :cell/x x :cell/y y))
+                         row)))
                grid))))
 
 (defn mine-field [w h] {:mine-field/width  w
@@ -26,15 +26,15 @@
   (for [cx (range (max 0 (dec x)) (min width (+ 2 x)))
         cy (range (max 0 (dec y)) (min height (+ 2 y)))]
     (-> grid
-      (get-in [cx cy])
-      (assoc :x cx :y cy))))
+        (get-in [cx cy])
+        (assoc :x cx :y cy))))
 
 (defn all-cells [{:mine-field/keys [width height grid] :as mine-field}]
   (for [cx (range width)
         cy (range height)]
     (-> grid
-      (get-in [cx cy])
-      (assoc :x cx :y cy))))
+        (get-in [cx cy])
+        (assoc :x cx :y cy))))
 
 
 ;; Library???
@@ -86,17 +86,6 @@
           (set-field-content field x y (mine-count field x y))))
       mf
       cell-locations)))
-
-(defn expand [{:keys [grid] :as mine-field} x y]
-  (let [cell                     (get-in mine-field [x y])
-        adjacent-not-mined-cells (into #{} (filter cell/not-mined? (adjacent-cells mine-field x y)))]
-    (cond
-      (empty? (:cell/content cell))
-      (mapv (fn [row] (mapv (fn [c]
-                              (if (or (= c cell) (contains? c adjacent-not-mined-cells))
-                                (assoc c :cell/hidden? false))) row)) grid)
-      (cell/mined? cell)
-      (mapv (fn [row] (mapv (fn [cell] (assoc cell :cell/hidden? false)) row)) grid))))
 
 
 (comment
