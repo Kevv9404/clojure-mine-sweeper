@@ -1,15 +1,15 @@
 {:deps              {}
  :npm-deps          {:install false}
+ :dev-http          {9001 "resources/public"}
  :nrepl             {:port 9000}
  :open-file-command ["/Applications/IntelliJ IDEA.app/Contents/MacOS/idea" :pwd "--line" :line :file]
- :builds            {:main {:target            :browser
-                            :output-dir        "resources/public/js/main"
-                            :asset-path        "/js/main"
-                            :js-options        {:ignore-asset-requires true}
-                            :modules           {:app     {:entries [dataico.client]} }
-                            :compiler-options  {:source-map true}
-                            :dev               {:compiler-options {:external-config {:guardrails {}
-                                                                                     :fulcro     {:html-source-annotations? true}}}}
-                            :devtools          {:after-load dataico.client/refresh
-                                                :preloads   [com.fulcrologic.devtools.chrome-preload
-                                                             dataico.development-preload]}}}}
+ :builds            {:main {:target           :browser
+                            :output-dir       "resources/public/js/main"
+                            :asset-path       "/js/main"
+                            :js-options       {:ignore-asset-requires true}
+                            :modules          {:app {:init-fn com.mine-sweeper.main/init}}
+                            :compiler-options {:source-map true}
+                            :dev              {:compiler-options {:external-config {:guardrails {}
+                                                                                    :fulcro     {:html-source-annotations? true}}}}
+                            :devtools         {:after-load com.mine-sweeper.main/refresh
+                                               #_#_:preloads [com.fulcrologic.devtools.chrome-preload]}}}}
