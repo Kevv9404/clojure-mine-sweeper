@@ -29,5 +29,5 @@
     (and (exposed? cell) (mined? cell)) "*"
     (flagged? cell) "?"
     (not (exposed? cell)) "~"
-    (empty-cell? cell) "_"
-    (number-cell? cell) (str cell)))
+    (empty-cell? cell) " "
+    (number-cell? cell) (str (:cell/content cell))))
