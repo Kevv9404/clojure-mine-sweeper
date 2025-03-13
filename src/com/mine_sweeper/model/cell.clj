@@ -11,3 +11,12 @@
 (defn set-mine [c] (assoc c :cell/content :mine))
 (defn set-flag [c] (assoc c :cell/flagged true))
 (defn content [c] (:cell/content c))
+
+(defn text-representation
+  "Returns a single-character string representing the visible content of the cell."
+  [{:cell/keys [hidden? content flagged?]}]
+  (cond
+    flagged? "F"
+    hidden? "~"
+    (= :mine content) "M"
+    :else (str content)))
