@@ -771,3 +771,4 @@ node_modules
 /resources/public/js/main/cljs-runtime/taoensso.truss.js.map
 /resources/public/js/main/app.js
 /resources/public/js/main/manifest.edn
+/command

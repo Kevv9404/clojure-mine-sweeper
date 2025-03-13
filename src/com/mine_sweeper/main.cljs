@@ -21,34 +21,31 @@
   (dom/div {:tabIndex  0
             :className "flex justify-center items-center h-screen "
             :onKeyDown (fn [evt]
-                         (let [key  (.-key evt)
-                               move (logic/user-input->command key)]
-                           (when move
+                         (let [key (.-key evt)]
+                           (when key
                              (swap! game-state logic/game-step key))))}
     (dom/div {:className "grid gap-1 p-4 bg-white shadow-lg rounded-lg"}
-      (map-indexed
-        (fn [y row]
-          (dom/div {:id (str "row-" y) :className "flex"}
-            (map-indexed
-              (fn [x cell]
-                (let [content    (:cell/content cell)
-                      hidden?    (:cell/hidden? cell)
-                      is-cursor? (= [x y] cursor-position)]
-                  (dom/div {:id (str "cell-" x "-" y)
-                            :onClick   (fn []
-                                         (println "Clicked on " x y cell))
-                            :className (str "w-10 h-10 flex items-center justify-center border border-gray-300"
-                                         (if is-cursor?
-                                           " bg-blue"
-                                           " bg-gray"
-                                           ))}
-                    (cond
-                      hidden? ""
-                      (= content :mine) (str "💣")
-                      :else (str content))
-                    )))
-              row)))
-        grid))))
+      (for [y (range height)]
+        (dom/div {:id (str "row-" y) :className "flex"}
+          (for [x (range width)]
+            (let [{:cell/keys [content hidden? flagged?]} (get-in grid [x y])
+                  is-cursor? (= [x y] cursor-position)]
+              (dom/div {:id        (str "cell-" x "-" y)
+                        :className "w-10 h-10 flex items-center justify-center border border-gray-300 font-bold border-grey text-white"
+                        :style     {:backgroundColor (cond
+                                                        is-cursor? "#3cdfff"
+                                                        (not hidden?) "#636363"
+                                                        hidden? "#E8E8E8")}}
+                (cond
+                  flagged? (str "🇨🇴")
+                  hidden? ""
+                  (= content :mine) (str "💣")
+                  :else (str content)))))))
+      (dom/div {:id "Game over" :className "flex"}
+        (when (logic/game-over? mine-field)
+          (dom/div
+            (dom/h1 "Game over!!")
+            (dom/button {:onClick #(swap! game-state logic/game-step \y)} "Restart")))))))
 
 
 (defn init []
