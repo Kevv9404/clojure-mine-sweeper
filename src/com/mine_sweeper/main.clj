@@ -1,4 +1,4 @@
-(ns com.mine-sweeper.model.playground
+(ns com.mine-sweeper.main
   (:require [com.mine-sweeper.model.cell :as cell]
             [com.mine-sweeper.model.field :as field]
             [com.mine-sweeper.terminal :as terminal])
@@ -59,7 +59,6 @@
       ;; Otherwise (mine or number), just reveal this cell
       :else (reveal-cell mine-field x y))))
 
-
 (defn movement-key->direction [k]
   (case k
     \h :left
@@ -67,9 +66,6 @@
     \k :up
     \l :right
     "Unknown command"))
-
-
-
 
 (defn flagged [{:keys [cursor-position] :as state}]
   (let [[cx cy] cursor-position]

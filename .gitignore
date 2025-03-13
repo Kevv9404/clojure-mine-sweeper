@@ -3,3 +3,8 @@
 .cpcache
 .nrepl-port
 clojure-mine-sweeper.iml
+.calva/
+.clj-kondo/
+.*.swp
+.lsp/
+classes/

@@ -1,6 +1,6 @@
 (ns com.mine-sweeper.terminal
-  (:import (java.nio.charset StandardCharsets)
-           (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)))
+  (:import (com.googlecode.lanterna.terminal DefaultTerminalFactory Terminal)
+           (java.nio.charset StandardCharsets)))
 
 (defn terminal []
   (.createTerminal (new DefaultTerminalFactory System/out, System/in, StandardCharsets/UTF_8)))
@@ -12,10 +12,9 @@
 (defn move-cursor [^Terminal t x y]
   (.setCursorPosition t x y))
 
-(defn put-character [^Terminal t x y ^Character c]
+(defn put-character [^Terminal t x y c]
   (.setCursorPosition t x y)
-  (.putCharacter t c)
-  )
+  (.putCharacter t (first (str c))))
 
 (defn get-next-key-press [^Terminal t]
   (let [keyStroke (.readInput t)]
