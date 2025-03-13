@@ -97,6 +97,6 @@
 (defn game-step
   "Update the game for a single step of user input"
   [current-state user-input]
-  (if-let [cmd (log/spy :info (get-command current-state user-input))]
-    (log/spy :info "Next state" (cmd current-state))
+  (if-let [cmd (get-command current-state user-input)]
+    (cmd current-state)
     current-state))
