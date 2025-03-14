@@ -12,4 +12,4 @@
                             :dev              {:compiler-options {:external-config {:guardrails {}
                                                                                     :fulcro     {:html-source-annotations? true}}}}
                             :devtools         {:after-load com.mine-sweeper.main/refresh
-                                               #_#_:preloads [com.fulcrologic.devtools.chrome-preload]}}}}
+                                               :preloads [com.fulcrologic.devtools.chrome-preload]}}}}

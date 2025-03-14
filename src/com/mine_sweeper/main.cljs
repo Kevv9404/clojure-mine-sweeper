@@ -1,62 +1,95 @@
 (ns com.mine-sweeper.main
   (:require
+    [com.fulcrologic.fulcro.application :as app]
+    [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
-    ["react-dom/client" :refer [createRoot]]
-    [com.mine-sweeper.logic :as logic]))
+    [com.fulcrologic.fulcro.mutations :refer [defmutation]]
+    [com.fulcrologic.fulcro.react.version18 :refer [with-react18]]
+    [com.mine-sweeper.logic :as logic]
+    [fulcro.inspect.tool :refer [add-fulcro-inspect!]]))
 
-(defonce root (atom nil))
+(defonce app (let [app (with-react18 (app/fulcro-app))]
+               (add-fulcro-inspect! app)
+               app))
 
-(declare render-mine-field game-state)
+(defmutation process-user-input [{:keys [key]}]
+  ;; Section
+  (action [{:keys [state]}]                                 ; OPTIMISTIC ACTION (before doing network stuff)
+    (when key
+      (swap! state logic/game-step key))))
 
-(defn render! []
-  (let [ui (render-mine-field @game-state)]
-    (.render @root ui)))
+(defmutation restart [{:keys [key]}]
+  (action [{:keys [state]}]
+    (reset! state (logic/setup 10 10 10))))
 
-(defonce game-state (let [a (atom (logic/setup 10 10 10))]
-                      (add-watch a :render render!)
-                      a))
+(defsc Cell [this {:cell/keys [x y content hidden? flagged?]} {:keys [cursor-position]}]
+  {:query [:cell/x
+           :cell/y
+           :cell/content
+           :cell/hidden?
+           :cell/flagged?]}
+  (let [is-cursor? (= [x y] cursor-position)]
+    (dom/div {:id        (str "cell-" x "-" y)
+              :key       (str "cell-" x "-" y)
+              :className "w-10 h-10 flex items-center justify-center border border-gray-300 font-bold border-grey text-white"
+              :style     {:backgroundColor (cond
+                                             is-cursor? "#3cdfff"
+                                             (not hidden?) "#636363"
+                                             hidden? "#E8E8E8")}}
+      (cond
+        flagged? (str "🇨🇴")
+        hidden? ""
+        (= content :mine) (str "💣")
+        :else (str content)))))
 
-(defn render-mine-field [{:keys            [cursor-position]
-                          :mine-field/keys [width height grid] :as mine-field}]
+(def ui-cell (comp/computed-factory Cell))
+
+(defsc Row [this {:row/keys [cells] :as props}]
+  {:query [{:row/cells (comp/get-query Cell)}]}
+  (mapv ui-cell cells))
+
+; EQL:   [:prop]
+
+(def ui-row (comp/computed-factory Row))
+
+(defsc MineField [this {:mine-field/keys [width height grid] :as mine-field} {:keys [cursor-position]}]
+  {:query [{:mine-field/rows (comp/get-query Row)}]}
+  (doall
+    (for [y (range height)]
+      (dom/div {:key (str "row-" y)
+                :id  (str "row-" y) :className "flex"}
+        (for [x (range width)]
+          (ui-cell (get-in grid [x y]) {:cursor-position cursor-position
+                                        :x               x :y y}))))))
+
+(def ui-mine-field (comp/computed-factory MineField))
+
+(defsc Game [this {:keys            [cursor-position]
+                   :mine-field/keys [width height grid] :as mine-field}]
+  {:initial-state (fn [& _] (logic/setup 10 10 10))}
   (dom/div {:tabIndex  0
             :className "flex justify-center items-center h-screen "
             :onKeyDown (fn [evt]
                          (let [key (.-key evt)]
-                           (when key
-                             (swap! game-state logic/game-step key))))}
+                           (comp/transact! this [(process-user-input {:key key})])))}
     (dom/div {:className "grid gap-1 p-4 bg-white shadow-lg rounded-lg"}
-      (for [y (range height)]
-        (dom/div {:id (str "row-" y) :className "flex"}
-          (for [x (range width)]
-            (let [{:cell/keys [content hidden? flagged?]} (get-in grid [x y])
-                  is-cursor? (= [x y] cursor-position)]
-              (dom/div {:id        (str "cell-" x "-" y)
-                        :className "w-10 h-10 flex items-center justify-center border border-gray-300 font-bold border-grey text-white"
-                        :style     {:backgroundColor (cond
-                                                       is-cursor? "#3cdfff"
-                                                       (not hidden?) "#636363"
-                                                       hidden? "#E8E8E8")}}
-                (cond
-                  flagged? (str "🇨🇴")
-                  hidden? ""
-                  (= content :mine) (str "💣")
-                  :else (str content)))))))
+      (ui-mine-field mine-field {:cursor-position cursor-position})
       (dom/div {:id "Game over" :className "flex flex-col items-center justify-center w-full mt-4 text-red"}
         (when (logic/game-over? mine-field)
           (dom/div {:className "text-center"}
             (dom/h1 {:className "text-2xl font-bold"} "Game over!!")
             (dom/button {:className "mt-2 px-4 py-2 bg-blue text-white rounded"
-                         :onClick   #(swap! game-state logic/game-step \y)}
+                         :onClick   (fn [] (comp/transact! this [(restart)]))}
               "Restart")))))))
 
 (defn init []
   (println "Initializing app!!")
-  (let [the-real-div (.getElementById js/document "app")]
-    (reset! root (createRoot the-real-div))))
+  (app/mount! app Game "app")
+  )
 
 (defn refresh []
-  (let [ui (render-mine-field @game-state)]
-    (.render @root ui)))
+  (app/mount! app Game "app")
+  )
 
 ;; Problems with global state:
 ;; 1. Gets large, and without organization, HARD to comprehend/navigate

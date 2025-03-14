@@ -1,7 +1,8 @@
 {:paths ["src" "test" "target/classes" "target/production/clojure-training"]
  :deps  {org.clojure/clojure              {:mvn/version "1.11.3"}
-         com.fulcrologic/fulcro           {:mvn/version "3.6.3"}
+         com.fulcrologic/fulcro           {:mvn/version "3.8.1"}
          fulcrologic/fulcro-spec          {:mvn/version "3.1.12"}
+         com.fulcrologic/fulcro-inspect   {:mvn/version "1.0.3"}
          thheller/shadow-cljs             {:mvn/version "2.28.20"}
          com.taoensso/timbre              {:mvn/version "6.6.1"}
          com.googlecode.lanterna/lanterna {:mvn/version "3.1.2"}}}
