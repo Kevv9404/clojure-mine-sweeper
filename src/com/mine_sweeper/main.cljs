@@ -57,3 +57,63 @@
 (defn refresh []
   (let [ui (render-mine-field @game-state)]
     (.render @root ui)))
+
+;; Problems with global state:
+;; 1. Gets large, and without organization, HARD to comprehend/navigate
+;; 2. As you evolve the application OVER TIME, with random devs
+;;    * people stick things in random locations
+;;    * information gets duplicated
+;;    * information LOADING/SAVING is complected with the operation of rendering
+;;        . componentDidMount used to LOAD data!!! Ugh. AVOID THIS!
+
+;; Database Normalization is how we deal with large complex data...have been doing this for decades
+;;   Definition:
+;;     * Deduplicate information (don't save the same things in multiple places)
+;;        * Efficient update
+;;        * Save storage (sharing data)
+;;     * Scheme for doing that.  SQL Research.
+;; Take-away information:
+;;   1. Divide the data based on conceptual "entities"
+;;   2. If there is nested data within such an entity that might need to be shared by more than one item, then divide that out
+;;   3. Use *references* to point things to each other
+
+; INVOICE: invoice-id, date, amount, [item1-id, item2-id, item3-id]
+; ITEM:    item1-id product-id number total
+; PRODUCT: product-id "SHIRT" 11.0
+
+; HOW WELL DOES THIS (practice/concept/technique) WORK AS SOFTWARE GROWS????
+;   * Code composition? Can I build things as "localized units" where composing those new units does not BREAK existing code?
+;       * Able to Refactor?
+;       * Can I Reuse that thing?
+;       * Does adding some new thing, break some old thing?
+;   * Local Reasoning?  Can I (mostly) thing about the things I'm working on, without worrying about breaking other things?
+;       * Can I think about some "thing" all by itself?
+;       * Abstraction
+;           * Can other people thing about my thing without having to read the implementation?
+;   * Clarity?
+;      * Are the concepts simple?
+;      * Easy to reason about?
+;      * Small number of things to "know" that can easily lead to understanding?
+;      * AVOID INCIDENTAL COMPLEXITY:
+;         . Usually an accident where not enough thought was used to find the core concepts/operations/etc. needed.
+;         . Not ALWAYS bad. Sometimes you're doing it because of some other concern (Type systems)
+;         . Bad when it COSTS something, but brings no benefit.
+
+
+; Swim different sizes of pools: Olympic size, smaller pools at rec centers.
+;    ALl of the swim meets (competitions): Keep track of how fast people are.
+;       20yd pool swimming 40yd breast stroke... (go out, turn around, come back)
+;          Tommy 23.45s
+;          Susie 22.45s
+;       20m pool swimming 40m breast stroke...
+;          Tommy 26.45s
+;          Susie 24.45s
+;       50m pool swimming 50m breast stroke <---- time you really care about (swim OUT only)
+; ; Qualify for Olympics, OR compare times between teams (rankings)
+; * REAL complexity: Ton of rules for CONVERTING times to compare swimmers (HAD A LOT of incidental complexity because of how people think)
+;
+; Loop: swimmers
+;    * Find all of their times (READ)
+;    * Convert some of those times -> target pool size (MAP)
+;    * Remove times that are not allowed to be used (FILTER)
+;    * compare (SORT)
