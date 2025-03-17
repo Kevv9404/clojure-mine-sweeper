@@ -15,12 +15,12 @@
 (defmutation process-user-input [{:keys [key]}]
   ;; Section
   (action [{:keys [state]}]                                 ; OPTIMISTIC ACTION (before doing network stuff)
-    (when key
-      (swap! state logic/game-step key))))
+          (when key
+            (swap! state logic/game-step key))))
 
 (defmutation restart [{:keys [key]}]
   (action [{:keys [state]}]
-    (reset! state (logic/setup 10 10 10))))
+          (reset! state (logic/setup 10 10 10))))
 
 (defsc Cell [this {:cell/keys [x y content hidden? flagged?]} {:keys [cursor-position]}]
   {:query [:cell/x
@@ -36,11 +36,11 @@
                                              is-cursor? "#3cdfff"
                                              (not hidden?) "#636363"
                                              hidden? "#E8E8E8")}}
-      (cond
-        flagged? (str "🇨🇴")
-        hidden? ""
-        (= content :mine) (str "💣")
-        :else (str content)))))
+             (cond
+               flagged? (str "🇨🇴")
+               hidden? ""
+               (= content :mine) (str "💣")
+               :else (str content)))))
 
 (def ui-cell (comp/computed-factory Cell))
 
@@ -53,14 +53,15 @@
 (def ui-row (comp/computed-factory Row))
 
 (defsc MineField [this {:mine-field/keys [width height grid] :as mine-field} {:keys [cursor-position]}]
-  {:query [{:mine-field/rows (comp/get-query Row)}]}
+  {:query [:mine-field/height :mine-field/width :mine-field/grid {:mine-field/grid (comp/get-query Row)}]}
   (doall
     (for [y (range height)]
       (dom/div {:key (str "row-" y)
                 :id  (str "row-" y) :className "flex"}
-        (for [x (range width)]
-          (ui-cell (get-in grid [x y]) {:cursor-position cursor-position
-                                        :x               x :y y}))))))
+               (for [x (range width)]
+                 (ui-cell (get-in grid [x y]) {:cursor-position cursor-position
+                                               :x               x
+                                               :y               y}))))))
 
 (def ui-mine-field (comp/computed-factory MineField))
 
@@ -72,15 +73,15 @@
             :onKeyDown (fn [evt]
                          (let [key (.-key evt)]
                            (comp/transact! this [(process-user-input {:key key})])))}
-    (dom/div {:className "grid gap-1 p-4 bg-white shadow-lg rounded-lg"}
-      (ui-mine-field mine-field {:cursor-position cursor-position})
-      (dom/div {:id "Game over" :className "flex flex-col items-center justify-center w-full mt-4 text-red"}
-        (when (logic/game-over? mine-field)
-          (dom/div {:className "text-center"}
-            (dom/h1 {:className "text-2xl font-bold"} "Game over!!")
-            (dom/button {:className "mt-2 px-4 py-2 bg-blue text-white rounded"
-                         :onClick   (fn [] (comp/transact! this [(restart)]))}
-              "Restart")))))))
+           (dom/div {:className "grid gap-1 p-4 bg-white shadow-lg rounded-lg"}
+                    (ui-mine-field mine-field {:cursor-position cursor-position})
+                    (dom/div {:id "Game over" :className "flex flex-col items-center justify-center w-full mt-4 text-red"}
+                             (when (logic/game-over? mine-field)
+                               (dom/div {:className "text-center"}
+                                        (dom/h1 {:className "text-2xl font-bold"} "Game over!!")
+                                        (dom/button {:className "mt-2 px-4 py-2 bg-blue text-white rounded"
+                                                     :onClick   (fn [] (comp/transact! this [(restart)]))}
+                                                    "Restart")))))))
 
 (defn init []
   (println "Initializing app!!")
