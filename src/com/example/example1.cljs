@@ -6,6 +6,30 @@
     [com.fulcrologic.fulcro.mutations :refer [defmutation]]
     [fulcro.inspect.tool :refer [add-fulcro-inspect!]]))
 
+;; Tree of data represents how we want the application to start out (static statement)
+;;    Normalizing into an "initial database"
+;;    Mounting:
+;;      LOOP:
+;;        * Query the database using the UI query -> Tree
+;;        * Render that entire Tree from Root (React makes this fast)
+;;        * TRANSACT -> change db -> recur (SYNCHRONOUS)
+;;
+;; Properties of this application:
+;;    Change happens at TRANSACT
+;;    Goes from one immutable state to new version of that state
+;;    Tracked in an atom
+;;
+;;    Can REASON IN TIME
+;;    * Normalization : makes large (or any) application tractable to use this way
+;;    * Composition : Components let us "take apart" the parts of the application to get LOCAL reasoning
+;;       * Co-located queries/idents lets us also compose the normalization
+;;
+;; NEXT: Consider side-effects that happen outside of pure data
+;;   * CANNOT reason about these IN TIME (unless you figure out a way to add that back)
+;;   * Async query over a network
+;;   * Read from disk
+;;   * Request to process something on web worker
+;;
 (defonce app (app/fulcro-app))
 
 (defn counter-button-click [b] (update b :button/clicks inc))
