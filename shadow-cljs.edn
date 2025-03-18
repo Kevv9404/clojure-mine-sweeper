@@ -7,9 +7,9 @@
                             :output-dir       "resources/public/js/main"
                             :asset-path       "/js/main"
                             :js-options       {:ignore-asset-requires true}
-                            :modules          {:app {:init-fn com.mine-sweeper.main/init}}
+                            :modules          {:app {:init-fn com.example.example1/init}}
                             :compiler-options {:source-map true}
                             :dev              {:compiler-options {:external-config {:guardrails {}
                                                                                     :fulcro     {:html-source-annotations? true}}}}
-                            :devtools         {:after-load com.mine-sweeper.main/refresh
+                            :devtools         {:after-load com.example.example1/refresh
                                                :preloads [com.fulcrologic.devtools.chrome-preload]}}}}
