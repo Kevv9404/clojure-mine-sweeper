@@ -1,36 +1,21 @@
 (ns com.example.example1
   (:require
+    [com.fulcrologic.fulcro.algorithms.tx-processing :as txn]
     [com.fulcrologic.fulcro.application :as app]
     [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
     [com.fulcrologic.fulcro.dom :as dom]
     [com.fulcrologic.fulcro.mutations :refer [defmutation]]
+    [edn-query-language.core :as eql]
     [fulcro.inspect.tool :refer [add-fulcro-inspect!]]))
 
-;; Tree of data represents how we want the application to start out (static statement)
-;;    Normalizing into an "initial database"
-;;    Mounting:
-;;      LOOP:
-;;        * Query the database using the UI query -> Tree
-;;        * Render that entire Tree from Root (React makes this fast)
-;;        * TRANSACT -> change db -> recur (SYNCHRONOUS)
-;;
-;; Properties of this application:
-;;    Change happens at TRANSACT
-;;    Goes from one immutable state to new version of that state
-;;    Tracked in an atom
-;;
-;;    Can REASON IN TIME
-;;    * Normalization : makes large (or any) application tractable to use this way
-;;    * Composition : Components let us "take apart" the parts of the application to get LOCAL reasoning
-;;       * Co-located queries/idents lets us also compose the normalization
-;;
-;; NEXT: Consider side-effects that happen outside of pure data
-;;   * CANNOT reason about these IN TIME (unless you figure out a way to add that back)
-;;   * Async query over a network
-;;   * Read from disk
-;;   * Request to process something on web worker
-;;
-(defonce app (app/fulcro-app))
+(defn handle-remote-interaction [this request]
+  )
+
+(defonce app (app/fulcro-app {:remotes
+                              {:remote
+                               {:transmit!
+                                (fn [{:keys [active-requests] :as this} {::txn/keys [ast result-handler update-handler] :as request}]
+                                  (handle-remote-interaction this request))}}}))
 
 (defn counter-button-click [b] (update b :button/clicks inc))
 
@@ -61,16 +46,14 @@
   {:query         [{:ui/other-button (comp/get-query CounterButton)}
                    {:ui/buttons (comp/get-query CounterButton)}]
    :initial-state {:ui/other-button {:id 1 :start-at 3}
-                   :ui/buttons     [{:id 1 :start-at 8}
-                                    {:id 2 :start-at 2}
-                                    {:id 3 :start-at 9}]}}
+                   :ui/buttons      [{:id 1 :start-at 8}
+                                     {:id 2 :start-at 2}
+                                     {:id 3 :start-at 9}]}}
   (dom/div nil
     (dom/h2 "My Buttons")
     (ui-counter-button other-button)
     (dom/ul nil
       (mapv ui-counter-button buttons))))
-(comment
-  (comp/get-initial-state Root {}))
 
 (defn refresh []
   (app/mount! app Root "app"))
@@ -78,3 +61,10 @@
 (defn init []
   (refresh)
   (add-fulcro-inspect! app))
+
+;; 1. Does I/O ONE at a time by default (override)
+;;    * IN THE order of submission
+;;    * UNLESS there are writes. Writes are pulled to the FRONT (on queue processing).
+;;       * A single interaction with the UI results in 1+ reads, 1+ writes-> writes pulled to the front
+;;           * Compose together a bunch of functions, and in VARIOUS functions there are loads/mutations.
+;;       * Multiple interactions with the UI WILL NOT reorder prior submissions
