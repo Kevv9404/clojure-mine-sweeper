@@ -1,8 +1,25 @@
 (ns com.mine-sweeper.main
   (:require [com.mine-sweeper.logic :as logic]
             [com.mine-sweeper.model.cell :as cell]
+            [edn-query-language.core :as eql]
             [com.mine-sweeper.terminal :as terminal])
   (:import (jdk.internal.org.jline.terminal Terminal)))
+
+(comment
+  ; Abstract syntax tree
+  (eql/query->ast [:a :b :c {:j [:sq]}])
+
+  (eql/ast->query
+    {:type     :root,
+    :children [{:type :prop, :dispatch-key :a, :key :a}
+               {:type :prop, :dispatch-key :b, :key :b}
+               {:type :prop, :dispatch-key :c, :key :c}
+               {:type         :join,
+                :dispatch-key :j,
+                :key          :j,
+                :query        [:sq],
+                :children     [{:type :prop, :dispatch-key :sq, :key :sq}]}]})
+  )
 
 (defn display-game-over-message [^Terminal t w h]
   (terminal/put-string t w h "Game Over! Press y to start again"))
