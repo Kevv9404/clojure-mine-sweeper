@@ -114,3 +114,11 @@
   (refresh)
   (add-fulcro-inspect! app)
   (df/load! app :buttons CounterButton {:target [:component/id :top-container :buttons]}))
+
+(defsc Address [this {:address/keys [id street ]}]
+  {:query [:address/id :address/street]}
+  {:ident :address/id})
+
+(defsc Person [this {:person/keys [id name address]}]
+  {:query [:person/id :person/name :person/address]
+   :ident :person/id })
