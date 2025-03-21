@@ -1,10 +1,11 @@
 (ns com.example.parser
   (:require
     [com.wsscode.pathom.connect :as pc]
-    [com.example.button :as button]
+    [com.example.resolvers.button :as r.button]
+    [com.example.resolvers.person :as r.person]
     [com.wsscode.pathom.core :as p]))
 
-(def all-resolvers [button/resolvers])
+(def all-resolvers [r.button/resolvers r.person/resolvers])
 
 (def parser
   (p/parser {::p/env     {::p/reader               [p/map-reader
