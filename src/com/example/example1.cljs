@@ -20,8 +20,8 @@
 (defn handle-remote-interaction [this {::txn/keys [ast result-handler] :as request}]
   (async/go
     (async/<! (async/timeout 200))
-    (let [txn                  (eql/ast->query ast)
-          response             (parser/parser {} txn)
+    (let [txn (eql/ast->query ast)
+          response (parser/parser {} txn)
           {:keys [key]} (-> ast :children first)
           response-status-fail (keyword? (get response key))]
       (result-handler
@@ -116,17 +116,29 @@
 
 (def ui-address-form (comp/factory AddressForm {:keyfn :address/id}))
 
-(defsc PersonForm [this {:ui/keys     [original-name]
-                         :person/keys [id name address] :as person}]
-  {:query [:person/id :person/name {:person/address (comp/get-query AddressForm)}
-           :ui/original-name]
+(def name-pattern #"^[A-Za-z]+(?: [A-Za-z]+)*$")
+
+(defn valid-age? [age]
+  (contains? (set (range 18 99)) age))
+
+(defn valid-name? [nm]
+  (boolean (re-matches name-pattern nm)))
+
+(defn valid-person-form? [{:person/keys [age name]}]
+  (and (valid-age? age) (valid-name? name)))
+
+(defsc PersonForm [this {:ui/keys     [original-name original-age]
+                         :person/keys [id name age address] :as person}]
+  {:query [:person/id :person/name :person/age {:person/address (comp/get-query AddressForm)}
+           :ui/original-name :ui/original-age]
    :ident :person/id}
   (let [new? (tempid/tempid? id)
-        dirty? (or new? (not= name original-name))]
+        dirty? (or new? (not= name original-name) (not= age original-age))]
     (dom/div {:className "flex items-center"}
              (ui-field (string-field-props this :person/name "Name"))
+             (ui-field (string-field-props this :person/age "Age"))
              (ui-address-form address)
-             (ui-button-action {:disabled (not dirty?)
+             (ui-button-action {:disabled (and (not dirty?) (valid-person-form? person))
                                 :onClick  #(comp/transact! this [(add-person person)])} "Save"))))
 
 (def ui-person-form (comp/factory PersonForm {:keyfn :person/id}))
@@ -169,7 +181,8 @@
 (defn refresh []
   (app/mount! app Root "app"))
 
-(defn copy-original-name [person] (assoc person :ui/original-name (:person/name person)))
+(defn copy-original-person-data [person] (assoc person :ui/original-name (:person/name person)
+                                                       :ui/original-age (:person/age person)))
 
 (defn init []
   (local-db/load-db!)
@@ -178,7 +191,7 @@
   (df/load! app :buttons CounterButton {:target [:component/id :top-container :buttons]})
   (df/load! app :people PersonForm {:target      [:person-form]
                                     :post-action (fn [{:keys [state] :as env}]
-                                                   (swap! state update :person/id (fn [m] (enc/map-vals copy-original-name m))))}))
+                                                   (swap! state update :person/id (fn [m] (enc/map-vals copy-original-person-data m))))}))
 
 (comment
 

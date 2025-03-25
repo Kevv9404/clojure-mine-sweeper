@@ -6,19 +6,20 @@
                        :address {3 {:address/id 3 :address/street "Street from db"}}
                        :people  {1 {:person/id      1
                                     :person/address 3
+                                    :person/age     20
                                     :person/name    "Robert"}}}))
 
 (defn next-id [db-key]
   (inc (last (keys (db-key @server)))))
 
 (defn save-db! []
-  (.. js/window -localStorage (setItem "db" (transit/transit-clj->str {:server  @server}))))
+  (.. js/window -localStorage (setItem "db" (transit/transit-clj->str {:server @server}))))
 
 (defn load-db! []
   (let [s (.. js/window -localStorage (getItem "db"))
-        {:keys [ server]} (transit/transit-str->clj s)]
+        {:keys [server]} (transit/transit-str->clj s)]
     (when server
       (reset! com.example.local-db/server server))))
 
 (comment
-  @server )
+  @server)
