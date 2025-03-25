@@ -15,7 +15,7 @@
 (pc/defmutation add-button [env {:button/keys [id] :as button}]
   {::pc/sym    'com.example.example1/add-button
    ::pc/output [:button/id :button/label :button/color]}
-  (let [real-id    (swap! local-db/next-id inc)
+  (let [real-id (local-db/next-id :buttons)
         new-button (assoc button :button/id real-id)]
     (swap! local-db/server update-in [:buttons] assoc real-id new-button)
     (local-db/save-db!)

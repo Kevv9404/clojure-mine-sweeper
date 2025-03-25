@@ -10,30 +10,28 @@
 (pc/defresolver person-resolver [_ {:person/keys [id]}]
   {::pc/input  #{:person/id}
    ::pc/output [:person/id :person/name {:person/address [:address/id]}]}
-  (let [person     (get-in @local-db/server [:people id])
-        address-id (:person/address person)
-        address    (get-in @local-db/server [:address address-id])]
-    (assoc person :person/address (or address {:address/id address-id}))))
+  (-> @local-db/server
+        (get-in [:people id])
+        (update :person/address (fn [id] {:address/id id}))))
 
 (pc/defresolver all-people-resolver [env _]
   {::pc/output [{:people [:person/id]}]}
   {:people (mapv (fn [id] {:person/id id}) (keys (:people @local-db/server)))})
 
-(pc/defmutation add-person [env {:person/keys [id] :as person}]
+
+(pc/defmutation add-person [env {:person/keys [id address] :as person}]
   {::pc/sym    'com.example.example1/add-person
-   ::pc/output [:person/id :person/name {:person/address [:address/id :address/street]}]}
-  (let [address     (get person :person/address)
-        address-id  (swap! local-db/next-id inc)
-        person-id   (swap! local-db/next-id inc)
-        new-address (assoc address :address/id address-id)
-        new-person  (-> person
-                      (assoc :person/id person-id)
-                      (assoc :person/address address-id))]
-    (swap! local-db/server assoc-in [:address address-id] new-address)
-    (swap! local-db/server assoc-in [:people person-id] new-person)
+   ::pc/output [:person/id :person/name
+                {:person/address [:address/id]}]}
+  (let [real-address-id (local-db/next-id :address)
+        real-person-id (local-db/next-id :people)
+        new-address (assoc address :address/id real-address-id)
+        new-person (assoc person :person/id real-person-id
+                                 :person/address real-address-id)]
+    (swap! local-db/server assoc-in [:address real-address-id] new-address)
+    (swap! local-db/server assoc-in [:people real-person-id] new-person)
     (local-db/save-db!)
-    (assoc new-person
-      :tempids {id person-id}
-      :person/address new-address)))
+    (assoc new-person :tempids {id real-person-id}
+                      :person/address real-address-id)))
 
 (def resolvers [add-person all-people-resolver address-resolver person-resolver])
