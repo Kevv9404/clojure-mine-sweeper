@@ -107,7 +107,7 @@
 (defn ui-button-action [{:keys [disabled] :as props} & children]
   (apply dom/button
          (update props :classes (fnil conj [])
-                 (if disabled "px-4 py-2 rounded text-white bg-blue" "px-4 py-2 rounded text-black bg-grey")) children))
+                 (if disabled "px-4 py-2 rounded text-black bg-grey" "px-4 py-2 rounded text-white bg-blue")) children))
 
 (defsc AddressForm [this props]
   {:query [:address/id :address/street]
@@ -153,7 +153,7 @@
            (dom/h2 " My Buttons ")
            (dom/ul nil
                    (mapv ui-counter-button buttons))
-           (ui-button-action {:onChange #(comp/transact! this [(new-person-form)])} "New person form")))
+           (ui-button-action {:onClick #(comp/transact! this [(new-person-form)])} "New person form")))
 
 (def ui-top-container (comp/factory TopContainer))
 
